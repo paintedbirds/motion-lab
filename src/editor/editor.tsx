@@ -213,6 +213,9 @@ export default function Editor() {
                       <Field label="Luz y sombras" info="Limpio es plano. Estudio agrega un brillo suave que se mueve sobre las pantallas.">
                         <ToggleGroup type="single" value={config.effect} onValueChange={v => v && choose('effect', v)} aria-label="Luz y sombras"><ToggleGroupItem value="clean">Limpio</ToggleGroupItem><ToggleGroupItem value="studio">Estudio</ToggleGroupItem></ToggleGroup>
                       </Field>
+                      <Field label="Marco" info="Pone cada pantalla dentro de una ventana de navegador o de un teléfono. El teléfono queda mejor con pantallas verticales.">
+                        <ToggleGroup type="single" value={config.frame || 'none'} onValueChange={v => v && choose('frame', v)} aria-label="Marco"><ToggleGroupItem value="none">Sin marco</ToggleGroupItem><ToggleGroupItem value="browser">Navegador</ToggleGroupItem><ToggleGroupItem value="phone">Teléfono</ToggleGroupItem></ToggleGroup>
+                      </Field>
                       <Field label="Tamaño de las pantallas" info="Qué tan grandes se ven las pantallas dentro del cuadro. Más grande llena más el video." value={Math.round(config.scale / 90 * 100) + '%'}><Slider min={60} max={110} step={1} value={[config.scale]} onValueChange={([v]) => choose('scale', v)} aria-label="Tamaño de las pantallas" /></Field>
                       <Field label="Intensidad del movimiento" info="Cuánto se mueve todo. Bajo es más calmo, alto es más marcado." value={config.intensity + '%'}><Slider min={0} max={100} step={1} value={[config.intensity]} onValueChange={([v]) => choose('intensity', v)} aria-label="Intensidad del movimiento" /></Field>
                     </Group>

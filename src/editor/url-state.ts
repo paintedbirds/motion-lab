@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react'
 import {useLocation, useNavigate, useParams} from 'react-router-dom'
 // @ts-ignore the engine is plain JavaScript
-import {defaults, formats, presets, ratios} from '@engine/config.js'
+import {defaults, formats, frames, presets, ratios} from '@engine/config.js'
 import {getLang, subscribeLang, t} from '@/i18n'
 import {codecs, grades} from './outputs'
 import {firstSample, sampleConfig, samples} from './samples'
@@ -28,6 +28,7 @@ const fields: Record<string, [string, (v: string) => any]> = {
   scale: ['scale', range(60, 110)],
   intensity: ['intensity', range(0, 100)],
   effect: ['effect', v => (effects.includes(v) ? v : undefined)],
+  frame: ['frame', v => (frames.includes(v) ? v : undefined)],
   top: ['top', hex],
   bottom: ['bottom', hex],
   bgMode: ['bgMode', v => (bgModes.includes(v) ? v : undefined)],

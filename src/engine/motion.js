@@ -1,4 +1,4 @@
-import {dimensions,duration,ratios} from './config.js';
+import {dimensions,duration,ratios,frames} from './config.js';
 import {labScenes} from './lab.js';
 import {scenes as anillos} from './lab-anillos.js';
 import {scenes as profundidad} from './lab-profundidad.js';
@@ -72,17 +72,42 @@ export function frame(c,img,crop,x,y,w,h){
   if(dw<w-.5||dh<h-.5){c.fillStyle=tone(img);c.fillRect(x,y,w,h)}
   c.drawImage(img,x+(w-dw)*(dw>w?crop.x:.5),y+(h-dh)*(dh>h?crop.y:.5),dw,dh);
 }
-function place(c,img,x,y,w,h){frame(c,img,framing(img),x,y,w,h)}
+// The frame drawn around every screen: none, a browser window or a phone. Set once per drawing from the config.
+let chrome='none';
+// A phone needs rounder corners than a plain card. Cards without corners fill the frame and stay bare.
+const corner=radius=>chrome==='phone'&&radius>0?Math.max(radius,.13):radius;
+const dark=img=>{const [r,g,b]=tone(img).match(/\d+/g).map(Number);return .299*r+.587*g+.114*b<110};
+// Draws an image into a card, inside the chosen frame. The frame is drawn in the card's own space, so it
+// moves, grows and gets clipped with the card in every scene. `bare` skips the frame.
+function place(c,img,x,y,w,h,bare=false){
+  const crop=framing(img),u=Math.min(w,h);
+  if(bare||chrome==='none')return frame(c,img,crop,x,y,w,h);
+  if(chrome==='browser'){
+    // The bar takes the tone of the screen: dark screens get a dark window.
+    const night=dark(img),bar=u*.085,dot=bar*.13,pill=Math.min(w*.46,w-bar*4.2);
+    c.fillStyle=night?'#24272b':'#eceef1';c.fillRect(x,y,w,bar);
+    ['#ff5f57','#febc2e','#28c840'].forEach((color,i)=>{c.fillStyle=color;c.beginPath();c.arc(x+bar*.6+i*bar*.42,y+bar/2,dot,0,TAU);c.fill()});
+    if(pill>bar){c.fillStyle=night?'#3a3f45':'#ffffff';c.beginPath();c.roundRect(x+(w-pill)/2,y+bar*.24,pill,bar*.52,bar*.26);c.fill()}
+    c.fillStyle=night?'#00000066':'#0000001f';c.fillRect(x,y+bar-Math.max(1,bar*.03),w,Math.max(1,bar*.03));
+    return frame(c,img,crop,x,y+bar,w,h-bar);
+  }
+  const edge=u*.04,rim=Math.max(1,u*.007);
+  c.fillStyle='#0f1113';c.fillRect(x,y,w,h);
+  c.save();c.beginPath();c.roundRect(x+edge,y+edge,w-edge*2,h-edge*2,u*.095);c.clip();frame(c,img,crop,x+edge,y+edge,w-edge*2,h-edge*2);c.restore();
+  // The camera island only makes sense on an upright phone.
+  if(h>w*1.15){c.fillStyle='#0f1113';c.beginPath();c.roundRect(x+w/2-u*.14,y+edge+u*.03,u*.28,u*.075,u*.04);c.fill()}
+  c.strokeStyle='#ffffff30';c.lineWidth=rim;c.beginPath();c.roundRect(x+rim/2,y+rim/2,w-rim,h-rim,u*.13-rim/2);c.stroke();
+}
 
 // Rounded copy of an image for cells whose shape stays fixed. Cached per shape.
 function tile(img,aspect,radius){
   let cache=tiles.get(img);if(!cache){cache=new Map();tiles.set(img,cache)}
-  const key=aspect.toFixed(2)+'|'+radius+framingKey(img);let found=cache.get(key);if(found)return found;
+  const key=chrome+aspect.toFixed(2)+'|'+radius+framingKey(img);let found=cache.get(key);if(found)return found;
   if(cache.size>16)cache.clear();
   const long=Math.min(1400,Math.max(img.width,img.height));
   const w=Math.max(2,Math.round(aspect>=1?long:long*aspect)),h=Math.max(2,Math.round(aspect>=1?long/aspect:long));
   found=document.createElement('canvas');found.width=w;found.height=h;
-  const c=found.getContext('2d');c.beginPath();c.roundRect(0,0,w,h,Math.min(w,h)*radius);c.clip();place(c,img,0,0,w,h);
+  const c=found.getContext('2d');c.beginPath();c.roundRect(0,0,w,h,Math.min(w,h)*corner(radius));c.clip();place(c,img,0,0,w,h,!radius);
   cache.set(key,found);return found;
 }
 
@@ -98,9 +123,9 @@ function paintCard(c,card){
   if(card.mask){c.beginPath();card.mask(c,w,h);c.clip()}
   if(card.shadow){c.shadowColor='#00000059';c.shadowBlur=w*.07;c.shadowOffsetY=w*.03}
   if(card.live){
-    const r=Math.min(w,h)*card.radius;
+    const r=Math.min(w,h)*corner(card.radius);
     if(card.shadow){c.fillStyle='#1c2022';c.beginPath();c.roundRect(-w/2,-h/2,w,h,r);c.fill();c.shadowColor='transparent'}
-    c.beginPath();c.roundRect(-w/2,-h/2,w,h,r);c.clip();place(c,img,-w/2,-h/2,w,h);
+    c.beginPath();c.roundRect(-w/2,-h/2,w,h,r);c.clip();place(c,img,-w/2,-h/2,w,h,!card.radius);
   }else c.drawImage(tile(img,w/h,card.radius),-w/2,-h/2,w,h);
   c.restore();
 }
@@ -401,9 +426,9 @@ const scenes={showcase,spread,ticker,spotlight,orbit,deal,drop,wave,...labScenes
 // Rounded copy of an image with its shadow, for the exploration presets. Cached per shape and framing.
 function sprite(img,studio,aspect){
   let cache=sprites.get(img);if(!cache){cache=new Map();sprites.set(img,cache)}
-  const key=(studio?'studio':'clean')+aspect.toFixed(2)+framingKey(img);let found=cache.get(key);if(found)return found;
+  const key=chrome+(studio?'studio':'clean')+aspect.toFixed(2)+framingKey(img);let found=cache.get(key);if(found)return found;
   if(cache.size>8)cache.clear();
-  const long=Math.min(1800,Math.max(img.width,img.height)),w=Math.max(2,Math.round(aspect>=1?long:long*aspect)),h=Math.max(2,Math.round(aspect>=1?long/aspect:long)),pad=64,r=Math.min(w,h)*.023;
+  const long=Math.min(1800,Math.max(img.width,img.height)),w=Math.max(2,Math.round(aspect>=1?long:long*aspect)),h=Math.max(2,Math.round(aspect>=1?long/aspect:long)),pad=64,r=Math.min(w,h)*corner(.023);
   const canvas=document.createElement('canvas');canvas.width=w+pad*2;canvas.height=h+pad*2;
   const c=canvas.getContext('2d');c.shadowColor=studio?'#0007':'#0003';c.shadowBlur=studio?30:12;c.shadowOffsetY=studio?20:8;
   c.fillStyle='#202629';c.beginPath();c.roundRect(pad,pad,w,h,r);c.fill();c.shadowColor='transparent';c.clip();place(c,img,pad,pad,w,h);
@@ -480,6 +505,7 @@ function paintBackdrop(c,config,images,w,h,p){
 }
 export function draw(canvas,config,images,time,{preview=false,long=0}={}){
   let [w,h]=dimensions(config,preview);
+  chrome=frames.includes(config.frame)?config.frame:'none';
   // `long` sets the long edge in pixels, for the small stills of the preset picker.
   if(long){const k=long/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}

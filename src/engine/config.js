@@ -36,9 +36,11 @@ export const presets = {
 };
 // Card ratios the editor offers, as width over height. Auto lets each scene decide from the images.
 export const ratios = {auto:0, '1:1':1, '4:3':4/3, '3:4':3/4, '4:5':4/5, '16:9':16/9, '9:16':9/16};
+// Frames a screen can sit in. Anything else is drawn as `none`.
+export const frames = ['none','browser','phone'];
 // Shared by the editor and the server.
 export const limits = {images:20, fileMB:12, edge:2400, requestMB:80};
-export const defaults = {duration:15,speed:1,fps:30,quality:'full',format:'wide',preset:'showcase',ratio:'auto',scale:90,intensity:70,effect:'clean',top:'#f3f4f5',bottom:'#d9dce1',assets:[]};
+export const defaults = {duration:15,speed:1,fps:30,quality:'full',format:'wide',preset:'showcase',ratio:'auto',scale:90,intensity:70,effect:'clean',frame:'none',top:'#f3f4f5',bottom:'#d9dce1',assets:[]};
 export function dimensions(config,preview=false){
   const f=formats[config.format];
   let factor=config.quality==='draft'?Math.min(1,720/Math.min(f.width,f.height)):1;

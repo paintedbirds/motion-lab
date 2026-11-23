@@ -70,6 +70,8 @@ export const en: Record<string, string> = {
 
   // Style
   'Fondo': 'Background', 'Acabado': 'Finish', 'Luz y sombras': 'Light and shadows', 'Limpio': 'Clean', 'Estudio': 'Studio',
+  'Marco': 'Frame', 'Sin marco': 'No frame', 'Navegador': 'Browser', 'Teléfono': 'Phone',
+  'Pone cada pantalla dentro de una ventana de navegador o de un teléfono. El teléfono queda mejor con pantallas verticales.': 'Puts every screen inside a browser window or a phone. The phone looks best with upright screens.',
   'Tamaño de las pantallas': 'Screen size', 'Intensidad del movimiento': 'Motion intensity',
   'Limpio es plano. Estudio agrega un brillo suave que se mueve sobre las pantallas.': 'Clean is flat. Studio adds a soft shine that moves across the screens.',
   'Qué tan grandes se ven las pantallas dentro del cuadro. Más grande llena más el video.': 'How large the screens look inside the frame. Larger fills more of the video.',

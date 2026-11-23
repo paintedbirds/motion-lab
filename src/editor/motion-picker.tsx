@@ -45,7 +45,7 @@ function Still({id, config, images, stamp, active, onPick}: {id: string; config:
 
 export function MotionPicker({config, images, version, choose}: {config: any; images: any[]; version: number; choose: (k: string, v: any) => void}) {
   // Wait a moment after a change so dragging a slider does not redraw every still on each step.
-  const look = [version, config.format, config.ratio, config.scale, config.intensity, config.effect, config.top, config.bottom, config.bgMode, config.bgMotion, config.bgFromImages, config.bgBlur, config.bgDim, config.bgImage?.length].join('|')
+  const look = [version, config.format, config.ratio, config.scale, config.intensity, config.effect, config.frame, config.top, config.bottom, config.bgMode, config.bgMotion, config.bgFromImages, config.bgBlur, config.bgDim, config.bgImage?.length].join('|')
   const [stamp, setStamp] = useState(look)
   useEffect(() => { const t = setTimeout(() => setStamp(look), 160); return () => clearTimeout(t) }, [look])
 
