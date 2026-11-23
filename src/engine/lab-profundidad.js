@@ -10,6 +10,19 @@ function alone(scene,cards,boxW,boxH,radius=.04){
   const {w,h,p,energy,studio,active}=scene,[cw,ch]=fit(cardShape(scene,active[0].img),boxW,boxH),grow=1+.08*energy/.7*glide(linear(p,.08,.46))*(1-glide(linear(p,.54,.92)));
   cards.push({img:active[0].img,x:w/2,y:h/2,w:cw*grow,h:ch*grow,radius,z:0,alpha:1,shadow:studio});
 }
+// Scenes that hand one screen over to the next inside a single frame. The loop is `n` steps. Each step rests,
+// then hands over during the last part of it. `draw` gets the card `base`, the screen leaving (`out`) and the one
+// arriving (`into`), the handover progress `u` (0 to 1), the step progress `f`, where the handover starts (`from`),
+// the step count `turn`, the card size and `each`, a rough time per screen that slows down zooms.
+// With `zooms` the handover takes longer, so the screen keeps moving while it rests.
+function reveal(scene,cards,draw,zooms=false){
+  const {w,h,p,portrait,size,studio,active,n}=scene,aspect=cellAspect(scene,.6,1.7);
+  const [cw,ch]=fit({width:aspect,height:1},w*(portrait?.78:.6)*size,h*(portrait?.52:.66)*size);
+  if(n===1)return alone(scene,cards,cw,ch,.05);
+  const move=zooms?.55:.4,from=1-move,at=p*n,turn=Math.min(n-1,Math.floor(at)),f=at-turn,u=linear(f,from,1);
+  draw({base:{x:w/2,y:h/2,w:cw,h:ch,radius:.05,z:0,alpha:1,shadow:studio},out:active[turn].img,into:active[(turn+1)%n].img,u,f,from,each:10/n,turn,cw,ch});
+}
+
 // Fewer than five images cannot fill a wall without sitting next to themselves: each one is shown once on a
 // board. Its lines move a little apart, the board comes slightly closer, and everything goes back.
 function calm(scene,cards,columns){
